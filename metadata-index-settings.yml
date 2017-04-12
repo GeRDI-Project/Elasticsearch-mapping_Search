@@ -27,7 +27,7 @@ settings:
         type: stop
         stopwords: _english_
       description_limit: # limit the length of the description to 2000 words/terms!
-        type: description_limit
+        type: limit
         max_token_count: 2000
       english_snowball: # term splitter for the english language
         type: snowball
@@ -43,6 +43,9 @@ mappings:
   # - language properties are automatically lowercased
   # - description text is stripped of HTML and filtered to not overcrowd the index
   # - "Type" enums (like descriptionType) are not searchable and limited
+  #
+  # NOTE:
+  # - ES allows all properties to be arrays, the JSON that the service sends to the index should only contain arrays if the properties name is plural.
   #
   # TODO:
   # - (?) group properties with the same prefix into an object type (awardName, awardURI -> award.{name,URI})
@@ -136,8 +139,8 @@ mappings:
       publicationYear:
         type: short # could be date, but this is stored more compact, e.g. 2009. strings should get coerced
       resourceType: # what kind of information is this
-        type: nested
-        index: false
+        type: object # array of objects
+        enabled: false # neither parsed or indexed, just stored
         properties:
           value: # free text, e.g. "Census Data"
             type: keyword
@@ -164,7 +167,7 @@ mappings:
       ### Begin recommended fields! ###
       #################################
       subjects: # Subject, keywords (tags), classification codes, or key phrases describing the resource.
-        type: nested
+        type: nested # TODO: could be flattened (tags extracted)
         properties:
           subject: # required - are always only findable by exact match! Tags should therefore always be concise and probably a single term!
             type: keyword
@@ -259,7 +262,7 @@ mappings:
             #  Valid
           date: # required - all formats supported by ES, see https://www.elastic.co/guide/en/elasticsearch/reference/5.2/mapping-date-format.html
             type: date # TODO: DataCite allows date ranges
-      geoLocations: # Spatial region or named place where the data was gathered or about which the data is focused. NOTE: every property has to manually mapped to the DataCite schema
+      geoLocations: # Spatial region or named place where the data was gathered or about which the data is focused. NOTE: every property has to manually mapped to the DataCite schema as they need to be provided in GeoJSON schema (geojson.org)
         type: nested
         properties:
           place: # free text name of a location - geoLocationPlace in DataCite schema
@@ -267,12 +270,12 @@ mappings:
             fields:
               raw:
                 type: keyword
-          point: # geoLocationPlace in DataCite schema
-            type: geo_point # NOTE: manually map! Represented as object with lat, lon, as string "<lat>,<lon>", as geohash or typle [<lon>,<lat>] (NOTE: reverse order to conform with GeoJSON) - DataCite schema: <pointLongitude> and <pointLatitude tags in XML (might also allow string "<lat> <lon>")
+          point: # geoLocationPoint in DataCite schema
+            type: geo_point # NOTE: manually map! Represented as tuple [<lon>,<lat>] - DataCite schema: <pointLongitude> and <pointLatitude tags in XML
           box: # geoLocationBox in DataCite schema - rectangle with the upper left and lower right point NOTE: verify order of lat/lon and is string in DataCite schema!
-            type: envelope # NOTE: manually map [ [lon,lat], [lon, lat] ]
-          polygon: # A drawn polygon area, defined by a set of points and lines connecting the points in a closed chain.
-            type: polygon # first and last point must match (both ES and DataCite), at least 4 points (compatible with DataCite)
+            type: geo_shape # NOTE: manually map to  { "type": "envelope", "coordinates": [ [lon,lat], [lon, lat] ] }
+          polygon: # A drawn polygon area, defined by a set of points and lines connecting the points in a closed chain (first and last point must match!).
+            type: geo_shape # NOTE: manually map to { "type": "polygon", "coordinates": [ [lon, lat], [lon,lat], ... ]}, see https://www.elastic.co/guide/en/elasticsearch/reference/current/geo-shape.html and http://geojson.org/geojson-spec.html#id4
       relatedIdentifiers: # recommended, Identifiers of related resources. Use this property to indicate subsets of properties, as appropriate.
         type: nested
         properties: # TODO: human readable label? TODO: relationType
@@ -343,8 +346,8 @@ mappings:
             index: false
 
       fundingReferences: # Information about financial support (funding) for the resource being registered.
-        type: nested
-        index: false # TODO: since this is not indexed, it could also be an object type to avoid additional (nested) document
+        type: object # array of objects
+        enabled: false # neither parsed or indexed, just stored
         properties:
           funderName:
             type: text
@@ -374,8 +377,8 @@ mappings:
       ### Begin GERDI fields! ###
       ###########################
       webLinks: # suggested, links used to refer users to when they want to see the original source website
-        type: nested
-        index: false
+        type: object # array of objects
+        enabled: false # neither parsed or indexed, just stored
         properties:
           name:
             type: text
@@ -389,8 +392,7 @@ mappings:
             # ... TODO
 
       sources: # REQUIRED - Endpooints and URLs used to retrieve the source meta data, e.g. link to JSON/XML
-        type: object # there can only be one source, no need to nest here
-        index: false
+        type: nested
         properties:
           URI: # REQUIRED URL to the page, previously viewURL, e.g. http://www.fao.org/faostat/en/#country/2
             type: keyword
@@ -399,17 +401,17 @@ mappings:
           providerURI:
             type: keyword # URL to the main page of the repository that provided this metadata, e.g. fao.org/faostat
       files: # Array of all files that where found. Has slight redundancy with DataCite, but this was it is bundled together
-        type: nested
-        index: false
+        type: object # array of objects
+        enabled: false # neither parsed or indexed, just stored
         properties:
+          identifier: # REQUIRED locally (within this document) unique identifier for the file, should be concise, e.g. a hash value
+            type: keyword
           url: # REQUIRED URL used to access these files
             type: keyword
           label: # REQUIRED human readable name for the file
             type: keyword
-          identifier: # REQUIRED locally (within this document) unique identifier for the file, should be concise, e.g. a hash value
-            type: keyword
           type: # careful this is a property! File format the data is in extension or mimetype, e.g. csv or application/json
             type: keyword
-       customData: # any information that should be stored, but does not fit anywhere else, just an arbitraty JSON
-         type: object
-         index: false
+      customData: # any information that should be stored, but does not fit anywhere else, just an arbitraty JSON
+        type: object
+        enabled: false # neither parsed or indexed, just stored
