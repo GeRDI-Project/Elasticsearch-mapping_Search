@@ -41,12 +41,13 @@
     # - DataCite prefixes most properties with the name of the object,
     #   this mapping removes this prefix, e.g. geoLocation.geoLocationPoint -> geolocation.point
     # - language properties are automatically lowercased
-    # - description text is stripped of HTML and filtered to not overcrowed the index
+    # - description text is stripped of HTML and filtered to not overcrowd the index
     # - "Type" enums (like descriptionType) are not searchable and limited
     #
     # TODO:
     # - (?) group properties with the same prefix into an object type (awardName, awardURI -> award.{name,URI})
     # - find a way to model categories and tags
+    # - More info about the date ranges of the data (not metadata), like "data collected between 1961-2003" (could be achieved using "dates")
     ####
     metadata:
       properties:
@@ -90,9 +91,9 @@
         titles:
           type: nested
           properties:
-            title:
+            title:      # required
               type: text
-            type: # careful, that is a property name
+            type: # optional - careful, that is a property name
               type: keyword
               index: false
               # allowed types:
@@ -165,7 +166,7 @@
         subjects: # Subject, keywords (tags), classification codes, or key phrases describing the resource.
           type: nested
           properties:
-            subject: # are always only findable by exact match! Tags should therefore always be concise and probably a single term!
+            subject: # required - are always only findable by exact match! Tags should therefore always be concise and probably a single term!
               type: keyword
               ignore_above: 30 # ignore if longer than 30 characters
             lang: # en-us
@@ -256,8 +257,8 @@
               #  Submitted
               #  Updated
               #  Valid
-            date: # all formats supported by ES, see https://www.elastic.co/guide/en/elasticsearch/reference/5.2/mapping-date-format.html
-              type: date
+            date: # required - all formats supported by ES, see https://www.elastic.co/guide/en/elasticsearch/reference/5.2/mapping-date-format.html
+              type: date # TODO: DataCite allows date ranges
         geoLocations: # Spatial region or named place where the data was gathered or about which the data is focused. NOTE: every property has to manually mapped to the DataCite schema
           type: nested
           properties:
@@ -274,7 +275,7 @@
               type: polygon # first and last point must match (both ES and DataCite), at least 4 points (compatible with DataCite)
         relatedIdentifiers: # recommended, Identifiers of related resources. Use this property to indicate subsets of properties, as appropriate.
           type: nested
-          properties:
+          properties: # TODO: human readable label? TODO: relationType
             value: # required! relatedIdentifier in DataCite schema
               type: keyword
             type: # required! careful this is a property, relatedIdentifierType in DataCite schema
@@ -372,7 +373,22 @@
         ###########################
         ### Begin GERDI fields! ###
         ###########################
-        source: # REQUIRED
+        webLinks: # suggested, links used to refer users to when they want to see the original source website
+          type: nested
+          index: false
+          properties:
+            name:
+              type: text
+            url:
+              type: keyword
+            type: # careful this is a property
+              type: keyword
+              # allowed values: TODO: extend!
+              # ViewURL
+              # Related
+              # ... TODO
+
+        sources: # REQUIRED - Endpooints and URLs used to retrieve the source meta data, e.g. link to JSON/XML
           type: object # there can only be one source, no need to nest here
           index: false
           properties:
@@ -394,7 +410,6 @@
               type: keyword
             type: # careful this is a property! File format the data is in extension or mimetype, e.g. csv or application/json
               type: keyword
-
-
-
-
+         customData: # any information that should be stored, but does not fit anywhere else, just an arbitraty JSON
+           type: object
+           index: false
