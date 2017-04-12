@@ -1,0 +1,35 @@
+version: '2'
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:5.2.2
+    ports:
+      - 9200:9200
+    volumes:
+      - elasticsearch:/var/elasticsearch/data
+    environment:
+      http.host: 0.0.0.0
+      transport.host: 127.0.0.1 # will not find any other cluster nodes in dev
+      xpack.security.enabled: "false"
+      xpack.monitoring.enabled: "true" # free
+      xpack.graph.enabled: "false"
+      xpack.watcher.enabled: "false"
+      ES_JAVA_OPTS: "-Xmx512m -Xms512m"
+      http.cors.enabled: "true"
+      http.cors.allow-origin: /https?:\/\/localhost(:[0-9]+)?/
+    networks:
+      - elk
+  kibana:
+    image: docker.elastic.co/kibana/kibana:5.2.2
+    ports:
+      - 5601:5601
+    environment:
+      - xpack.security.enabled=false
+    networks:
+      - elk
+    depends_on:
+      - elasticsearch
+volumes:
+  elasticsearch: {}
+networks:
+  elk:
+    driver: bridge
