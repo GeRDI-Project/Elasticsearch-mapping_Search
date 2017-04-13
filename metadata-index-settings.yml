@@ -247,7 +247,7 @@ mappings:
       dates: # Different dates relevant to the work.
         type: nested
         properties:
-          type: # careful, that is a property name
+          type: # required, careful, that is a property name
             type: keyword # TODO: flatten? Each possible type as its own property, e.g. dates.accepted
             index: false
             # allowed types:
