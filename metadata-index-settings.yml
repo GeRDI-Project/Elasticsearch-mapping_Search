@@ -57,7 +57,7 @@ mappings:
       ##############################
       ### Begin mandatory fields ###
       ##############################
-      identifier:
+      identifier: # only doi supported
         type: keyword
       creators:
         type: nested
@@ -142,9 +142,9 @@ mappings:
         type: object # array of objects
         enabled: false # neither parsed or indexed, just stored
         properties:
-          value: # free text, e.g. "Census Data"
+          resourceType: # free text, e.g. "Census Data"
             type: keyword
-          resourceTypeGeneral: # general category, e.g. "Dataset" for census data, see DataCite Schema PDF for more info on each type
+          general: # general category, e.g. "Dataset" for census data, see DataCite Schema PDF for more info on each type
             type: keyword
             index: false
             # allowed types
@@ -279,7 +279,7 @@ mappings:
       relatedIdentifiers: # recommended, Identifiers of related resources. Use this property to indicate subsets of properties, as appropriate.
         type: nested
         properties: # TODO: human readable label? TODO: relationType
-          value: # required! relatedIdentifier in DataCite schema
+          relatedIdentifier: # required!
             type: keyword
           type: # required! careful this is a property, relatedIdentifierType in DataCite schema
             type: keyword
@@ -303,6 +303,34 @@ mappings:
             #  UPC
             #  URL
             #  URN
+          relationType: # required! Description of the relationship of the resource being registered (A) and the related resource (B)
+            type: keyword
+            # allowed values:
+            #  IsCitedBy
+            #  Cites
+            #  IsSupplementTo
+            #  IsSupplementedBy
+            #  IsContinuedBy
+            #  Continues
+            #  IsNewVersionOf
+            #  IsPreviousVersionOf
+            #  IsPartOf
+            #  HasPart
+            #  IsReferencedBy
+            #  References
+            #  IsDocumentedBy
+            #  Documents
+            #  IsCompiledBy
+            #  Compiles
+            #  IsVariantFormOf
+            #  IsOriginalFormOf
+            #  IsIdenticalTo
+            #  HasMetadata
+            #  IsMetadataFor
+            #  Reviews
+            #  IsReviewedBy
+            #  IsDerivedFrom
+            #  IsSourceOf
           relatedMetadataScheme: # optional, e.g. citeproc+json
             type: keyword
             index: false
@@ -323,7 +351,7 @@ mappings:
       alternateIdentifiers: # An identifier or identifiers other than the primary Identifier applied to the resource being registered. This may be any alphanumeric string which is unique within its domain of issue. May be used for local identifiers. AlternateIdentifier should be used for another identifier of the same instance (same location, same file).
         type: nested
         properties:
-          value: # required, alternateIdentifier in DataCite schema
+          alternateIdentifier: # required, alternateIdentifier in DataCite schema
             type: keyword
           type: # required
             type: keyword # free text, e.g. URL
