@@ -46,7 +46,7 @@ mappings:
   #
   # NOTE:
   # - ES allows all properties to be arrays, the JSON that the service sends to the index should only contain arrays if the properties name is plural.
-  #
+  # - geolocations and date (ranges) are not one to one mapped
   # TODO:
   # - (?) group properties with the same prefix into an object type (awardName, awardURI -> award.{name,URI})
   # - find a way to model categories and tags
@@ -260,8 +260,16 @@ mappings:
             #  Submitted
             #  Updated
             #  Valid
-          date: # required - all formats supported by ES, see https://www.elastic.co/guide/en/elasticsearch/reference/5.2/mapping-date-format.html
-            type: date # TODO: DataCite allows date ranges
+          date: # required - NOTE: not equal to DataCite! It requires range support which is not natively supported by elastic search
+            type: object
+            properties:
+              exact: # used if date is not a range, empty if neither from or to are set
+                type: date
+              from: # beginning of date range, can be empty
+                type: date
+              to: # end of date range, can be empty
+                type: date
+
       geoLocations: # Spatial region or named place where the data was gathered or about which the data is focused. NOTE: every property has to manually mapped to the DataCite schema as they need to be provided in GeoJSON schema (geojson.org)
         type: nested
         properties:
