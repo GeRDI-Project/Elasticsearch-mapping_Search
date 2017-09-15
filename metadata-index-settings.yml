@@ -3,8 +3,8 @@ settings:
   index:
     number_of_shards: 1
     number_of_replicas: 1
-    mapper:
-      dynamic: false # unknown properties will not get indexed automatically!
+    mapper.dynamic: false # unknown properties will not get indexed automatically!
+  mapping.single_type: true # Just one type in preparation for ES 6.0+
   analysis:
     normalizer:
       lowercase:
@@ -37,7 +37,7 @@ mappings:
   # This mapping should be fully compatible to schema.DataCite.org, but
   # since it is a XML based format, the data has to be transformed to JSON.
   # General conventions:
-  # - names like of people or titles have are of type "text", but allow an exact match via <prop>.raw
+  # - names like of people or titles are of type "text", but allow an exact match via <prop>.raw
   # - DataCite prefixes most properties with the name of the object,
   #   this mapping removes this prefix, e.g. geoLocation.geoLocationPoint -> geolocation.point
   # - language properties are automatically lowercased
@@ -48,8 +48,6 @@ mappings:
   # - ES allows all properties to be arrays, the JSON that the service sends to the index should only contain arrays if the properties name is plural.
   # - geolocations and date (ranges) are not one to one mapped
   # TODO:
-  # - (?) group properties with the same prefix into an object type (awardName, awardURI -> award.{name,URI})
-  # - find a way to model categories and tags
   # - More info about the date ranges of the data (not metadata), like "data collected between 1961-2003" (could be achieved using "dates")
   ####
   metadata:
@@ -59,10 +57,13 @@ mappings:
       ##############################
       identifier: # only doi supported
         type: keyword
-      creators:
+        properties:
+          identifierType:
+            type: keyword
+      creator:
         type: nested
         properties:
-          name: # required! format: FamilyName, GivenName (e.g. Neumann, Mathis) "creatorName" in DataCite schema
+          creatorName: # required! format: FamilyName, GivenName (e.g. Neumann, Mathis) "creatorName" in DataCite schema
             type: text
             fields:
               raw:
@@ -76,60 +77,55 @@ mappings:
               type: text
               fields:
                 raw:
-                  type: text
+                  type: keyword
           nameIdentifier: # e.g. orcid id number
-            type: keyword
-          nameIdentifierScheme: # name of the identifier scheme, e.g. ORCID
-            type: keyword
-            normalizer: lowercase # TODO: good idea?
-            index: false
-          nameIdentifierSchemeURI: # slightly differs from DataCite which is an XML attribute, e.g. http://orcid.org/
-            type: keyword
-            index: false
+            type: nested # ntd: check
+            properties:
+              nameIdentifier:
+                type: text
+                index: false
+              nameIdentifierScheme: # name of the identifier scheme, e.g. ORCID
+                type: keyword
+                normalizer: lowercase # TODO: good idea?
+                index: false
+              nameIdentifierSchemeURI: # slightly differs from DataCite which is an XML attribute, e.g. http://orcid.org/
+                type: keyword
+                index: false
           affiliation: # organizaton the person is in
             type: text
             fields:
               raw:
                 type: keyword
-      titles:
+      title:
         type: nested
         properties:
           title:      # required
             type: text
-          type: # optional - careful, that is a property name
+          titleType: # optional
             type: keyword
             index: false
-            # allowed types:
+            # Controlled List Values:
             #  AlternativeTitle
             #  Subtitle
             #  TranslatedTitle
             #  Other
-          lang: # language (e.g. en-US), see language field below
-            type: keyword
-            normalizer: lowercase
-            index: false
 
-      descriptions: # highly recommended, NOTE: The DataCite schema allows <br> here, which are not supported and should be replaced with \n!
+      description: # highly recommended, NOTE: The DataCite schema allows <br> here, which are not supported and should be replaced with \n!
         type: nested
         properties:
           description: # required! The actual text, will be stripped of HTML. Please
             type: text
             analyzer: description_analyzer # cleaned of HTML tags, max 2000 words/terms
-
-          type: # required! careful this is a property, "descriptionType" in DataCite schema
+          descriptionType: # required! careful this is a property, "descriptionType" in DataCite schema
             type: keyword
             index: false
-            # allowed values:
+            # Controlled List Values:
             #  Abstract
             #  Methods
             #  SeriesInformation
             #  TableOfContents
             #  TechnicalInfo
             #  Other
-          lang:
-            type: keyword
-            index: false
-            normalizer: lowercase
 
       publisher: # organization or person that published the data
         type: text
@@ -137,17 +133,18 @@ mappings:
           raw:
             type: keyword
       publicationYear:
-        type: short # could be date, but this is stored more compact, e.g. 2009. strings should get coerced
+        type: date # ntd: should be checked within the indexing (Only YYYY)
+
       resourceType: # what kind of information is this
         type: object # array of objects
-        enabled: false # neither parsed or indexed, just stored
+        index: false # not indexed
         properties:
           resourceType: # free text, e.g. "Census Data"
             type: keyword
-          general: # general category, e.g. "Dataset" for census data, see DataCite Schema PDF for more info on each type
+          resourceTypeGeneral: # general category, e.g. "Dataset" for census data, see DataCite Schema PDF for more info on each type
             type: keyword
             index: false
-            # allowed types
+            # Controlled List Values:
             #  Audiovisual
             #  Collection
             #  Dataset
@@ -166,17 +163,11 @@ mappings:
       #################################
       ### Begin recommended fields! ###
       #################################
-      subjects: # Subject, keywords (tags), classification codes, or key phrases describing the resource.
-        type: nested # TODO: could be flattened (tags extracted)
+      subject: # Subject, keywords (tags), classification codes, or key phrases describing the resource.
+        type: nested # ntd: check type
         properties:
           subject: # required - are always only findable by exact match! Tags should therefore always be concise and probably a single term!
             type: keyword
-            ignore_above: 30 # ignore if longer than 30 characters
-          lang: # en-us
-            type: keyword
-            index: false
-            normalizer: lowercase
-
           # RDF Data
           schemeURI: # the URI of the subject identifier scheme.
             type: keyword
@@ -187,10 +178,10 @@ mappings:
             type: keyword
             index: false
 
-      contributors: # the institution or person responsible for collecting, managing, distributing, or otherwise contributing to the development of the resource.
+      contributor: # the institution or person responsible for collecting, managing, distributing, or otherwise contributing to the development of the resource.
         type: nested
         properties:
-          type: # required! contributorType in DataCite
+          contributorType: # required! contributorType in DataCite
             type: keyword
             index: false
             # allowed values
@@ -215,7 +206,7 @@ mappings:
             #  Sponsor
             #  Supervisor
             #  WorkPackageLeader
-          name: # required! format: FamiliyName, GivenName (e.g. Neumann, Mathis) - contributorName in DataCite
+          contributorName: # required! format: FamiliyName, GivenName (e.g. Neumann, Mathis) - contributorName in DataCite
             type: text
             fields:
               raw:
@@ -244,13 +235,13 @@ mappings:
               raw:
                 type: keyword
 
-      dates: # Different dates relevant to the work.
+      date: # Different dates relevant to the work.
         type: nested
         properties:
-          type: # required, careful, that is a property name
+          dateType: # required, careful, that is a property name
             type: keyword # TODO: flatten? Each possible type as its own property, e.g. dates.accepted
             index: false
-            # allowed types:
+            # Controlled List Values:
             #  Accepted
             #  Available
             #  Collected
@@ -260,39 +251,33 @@ mappings:
             #  Submitted
             #  Updated
             #  Valid
-          date: # required - NOTE: not equal to DataCite! It requires range support which is not natively supported by elastic search
-            type: object
-            properties:
-              exact: # used if date is not a range, empty if neither from or to are set
-                type: date
-              from: # beginning of date range, can be empty
-                type: date
-              to: # end of date range, can be empty
-                type: date
+          date: # required
+            type: date_range
+            format: "yyyy-MM-dd HH:mm:ss" # ntd: check format!
 
-      geoLocations: # Spatial region or named place where the data was gathered or about which the data is focused. NOTE: every property has to manually mapped to the DataCite schema as they need to be provided in GeoJSON schema (geojson.org)
+      geoLocation: # Spatial region or named place where the data was gathered or about which the data is focused. NOTE: every property has to manually mapped to the DataCite schema as they need to be provided in GeoJSON schema (geojson.org)
         type: nested
         properties:
-          place: # free text name of a location - geoLocationPlace in DataCite schema
+          geoLocationPlace: # free text name of a location - geoLocationPlace in DataCite schema
             type: text
             fields:
               raw:
                 type: keyword
-          point: # geoLocationPoint in DataCite schema
+          geoLocationPoint: # geoLocationPoint in DataCite schema
             type: geo_point # NOTE: manually map! Represented as tuple [<lon>,<lat>] - DataCite schema: <pointLongitude> and <pointLatitude tags in XML
-          box: # geoLocationBox in DataCite schema - rectangle with the upper left and lower right point NOTE: verify order of lat/lon and is string in DataCite schema!
+          geoLocationBox: # geoLocationBox in DataCite schema - rectangle with the upper left and lower right point NOTE: verify order of lat/lon and is string in DataCite schema!
             type: geo_shape # NOTE: manually map to  { "type": "envelope", "coordinates": [ [lon,lat], [lon, lat] ] }
-          polygon: # A drawn polygon area, defined by a set of points and lines connecting the points in a closed chain (first and last point must match!).
+          geoLocationPolygon: # A drawn polygon area, defined by a set of points and lines connecting the points in a closed chain (first and last point must match!).
             type: geo_shape # NOTE: manually map to { "type": "polygon", "coordinates": [ [lon, lat], [lon,lat], ... ]}, see https://www.elastic.co/guide/en/elasticsearch/reference/current/geo-shape.html and http://geojson.org/geojson-spec.html#id4
       relatedIdentifiers: # recommended, Identifiers of related resources. Use this property to indicate subsets of properties, as appropriate.
         type: nested
         properties: # TODO: human readable label? TODO: relationType
           relatedIdentifier: # required!
             type: keyword
-          type: # required! careful this is a property, relatedIdentifierType in DataCite schema
+          relatedIdentifierType: # required! careful this is a property, relatedIdentifierType in DataCite schema
             type: keyword
             index: false
-            # allowed values:
+            # Controlled List Values:
             #  ARK
             #  arXiv
             #  bibcode
@@ -313,7 +298,7 @@ mappings:
             #  URN
           relationType: # required! Description of the relationship of the resource being registered (A) and the related resource (B)
             type: keyword
-            # allowed values:
+            # Controlled List Values:
             #  IsCitedBy
             #  Cites
             #  IsSupplementTo
@@ -355,35 +340,35 @@ mappings:
       language: # Primary language of the resource. Allowed values are taken from  IETF BCP 47, ISO 639-1 language codes. (e.g. de, en-US)
         type: keyword
         normalizer: lowercase
-        index: false # should search by language code be supported?
+        index: false # should search by language code be supported? Answer: no... still aggregation through entity recognition
       alternateIdentifiers: # An identifier or identifiers other than the primary Identifier applied to the resource being registered. This may be any alphanumeric string which is unique within its domain of issue. May be used for local identifiers. AlternateIdentifier should be used for another identifier of the same instance (same location, same file).
         type: nested
         properties:
           alternateIdentifier: # required, alternateIdentifier in DataCite schema
             type: keyword
-          type: # required
+          alternateIdentifierType: # required
             type: keyword # free text, e.g. URL
 
       sizes: # Unstructured size information about the resource
         type: keyword # e.g. 3 GB
         index: false
 
-      formats: # Technical format of the resource. Use file extension or MIME type where possible.
+      format: # Technical format of the resource. Use file extension or MIME type where possible.
         type: keyword
       version: # Version number of the resource. If the primary resource has changed the version number increases.
         type: keyword # e.g. 3.1
-      rightsList:
+      rights:
         type: nested
         properties:
           rights: # e.g. CC0 1.0 Universal
             type: keyword
-          URI: # rightsURI in DataCite schema
+          rightsURI: # rightsURI in DataCite schema
             type: keyword # e.g. http://creativecommons.org/publicdomain/zero/1.0/
             index: false
 
-      fundingReferences: # Information about financial support (funding) for the resource being registered.
+      fundingReference: # Information about financial support (funding) for the resource being registered.
         type: object # array of objects
-        enabled: false # neither parsed or indexed, just stored
+        index: false # neither parsed or indexed, just stored
         properties:
           funderName:
             type: text
@@ -394,7 +379,7 @@ mappings:
             type: keyword
           funderIdentifierType:
             type: keyword
-            # allowed values:
+            # Controlled Value List:
             #  ISNI
             #  GRID
             #  Crossref Funder ID
@@ -413,41 +398,35 @@ mappings:
       ### Begin GERDI fields! ###
       ###########################
       webLinks: # suggested, links used to refer users to when they want to see the original source website
-        type: object # array of objects
-        enabled: false # neither parsed or indexed, just stored
-        properties:
-          name:
-            type: text
-          url:
-            type: keyword
-          type: # careful this is a property
-            type: keyword
-            # allowed values: TODO: extend!
-            # ViewURL
-            # Related
-            # ... TODO
-
-      sources: # REQUIRED - Endpooints and URLs used to retrieve the source meta data, e.g. link to JSON/XML
         type: nested
-        properties:
-          URI: # REQUIRED URL to the page, previously viewURL, e.g. http://www.fao.org/faostat/en/#country/2
-            type: keyword
-          provider: # REQUIRED a unique readable name of the repository, e.g. FAOSTAT
-            type: keyword
-          providerURI:
-            type: keyword # URL to the main page of the repository that provided this metadata, e.g. fao.org/faostat
-      files: # Array of all files that where found. Has slight redundancy with DataCite, but this was it is bundled together
-        type: object # array of objects
         enabled: false # neither parsed or indexed, just stored
         properties:
-          identifier: # REQUIRED locally (within this document) unique identifier for the file, should be concise, e.g. a hash value
+          linkName:
             type: keyword
-          url: # REQUIRED URL used to access these files
+          linkURI:
             type: keyword
-          label: # REQUIRED human readable name for the file
+
+      repository:
+        type: nested
+        enabled: false
+        properties:
+          repositoryIdentifier:
             type: keyword
-          type: # careful this is a property! File format the data is in extension or mimetype, e.g. csv or application/json
+          repositoryURI:
             type: keyword
-      customData: # any information that should be stored, but does not fit anywhere else, just an arbitraty JSON
-        type: object
-        enabled: false # neither parsed or indexed, just stored
+
+      researchData:
+        type: nested
+        enabled: false
+        properties:
+          fileIdentifier:
+            type: keyword
+          fileURL:
+            type: keyword
+          fileLabel:
+            type: keyword
+          fileType:
+            type: keyword
+
+      researchDomain:
+        type: keyword

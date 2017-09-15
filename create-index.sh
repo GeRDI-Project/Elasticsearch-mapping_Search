@@ -8,7 +8,7 @@
 HOST=${HOST:-http://localhost:9200}
 INDEX=${1:-datacite}
 
-if [[ -n "$FORCE" ]]; then
+if [ -n "$FORCE" ]; then
     echo "Trying to delete old index!"
     curl -XDELETE $HOST/$INDEX?format=yaml
 fi
