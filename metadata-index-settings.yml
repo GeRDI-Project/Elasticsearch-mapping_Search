@@ -56,8 +56,10 @@ mappings:
       ### Begin mandatory fields ###
       ##############################
       identifier: # only doi supported
-        type: keyword
+        type: nested
         properties:
+          identifier:
+            type: keyword
           identifierType:
             type: keyword
       creator:
@@ -137,13 +139,12 @@ mappings:
 
       resourceType: # what kind of information is this
         type: object # array of objects
-        index: false # not indexed
+        #index: false # not indexed
         properties:
           resourceType: # free text, e.g. "Census Data"
             type: keyword
           resourceTypeGeneral: # general category, e.g. "Dataset" for census data, see DataCite Schema PDF for more info on each type
             type: keyword
-            index: false
             # Controlled List Values:
             #  Audiovisual
             #  Collection
@@ -368,7 +369,7 @@ mappings:
 
       fundingReference: # Information about financial support (funding) for the resource being registered.
         type: object # array of objects
-        index: false # neither parsed or indexed, just stored
+        enabled: false # neither parsed or indexed, just stored
         properties:
           funderName:
             type: text
