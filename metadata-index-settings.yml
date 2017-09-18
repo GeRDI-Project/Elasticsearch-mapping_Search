@@ -55,6 +55,8 @@ mappings:
   # TODO:
   # - More info about the date ranges of the data (not metadata), like "data collected between 1961-2003" (could be achieved using "dates")
   ####
+  _default_:
+    dynamic: strict # Prohibit unknown fields
   metadata:
     properties:
       ##############################

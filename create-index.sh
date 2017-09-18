@@ -6,7 +6,7 @@
 # run: npm install -g js-yaml@3.8.3
 
 HOST=${HOST:-http://localhost:9200}
-INDEX=${1:-datacite}
+INDEX=${1:-gerdi}
 
 if [ -n "$FORCE" ]; then
     echo "Trying to delete old index!"
