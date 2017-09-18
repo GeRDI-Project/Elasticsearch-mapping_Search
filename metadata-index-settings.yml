@@ -3,10 +3,10 @@ settings:
   index:
     number_of_shards: 1
     number_of_replicas: 1
-    mapper.dynamic: false # unknown properties will not get indexed automatically!
+    mapper.dynamic: false # unknown properties will not get indexed and parsed automatically
   mapping.single_type: true # Just one type in preparation for ES 6.0+
   analysis:
-    normalizer: # only experimental!
+    normalizer: # Normalizer are only experimental; used for keywords
       lowercase:
         type: custom
         filter:
@@ -23,10 +23,10 @@ settings:
           - remove_common_english_terms
           - description_limit
     filter:
-      remove_common_english_terms: # remove words like "a","the", ... reduces index size. TODO: evaluate if it is worth it, take a look at Common Terms Query in ES
+      remove_common_english_terms: # Remove words like "a","the", ... reduces index size. Increases hit rate as queries get more accurate (stopwords introduce noise)
         type: stop
         stopwords: _english_
-      description_limit: # limit the length of the description to 2000 words/terms!
+      description_limit: # Only parse and index the first 2000 token (most certainly words)
         type: limit
         max_token_count: 2000
       english_snowball: # term splitter for the english language
@@ -47,16 +47,14 @@ mappings:
   #   this mapping removes this prefix, e.g. geoLocation.geoLocationPoint -> geolocation.point
   # - language properties are automatically lowercased
   # - description text is stripped of HTML and filtered to not overcrowd the index
-  # - "Type" enums (like descriptionType) are not searchable and limited
+  # - "Type" enums (like descriptionType) are not indexed
   #
   # NOTE:
   # - ES allows all properties to be arrays, the JSON that the service sends to the index should only contain arrays if the properties name is plural.
-  # - geolocations and date (ranges) are not one to one mapped
-  # TODO:
-  # - More info about the date ranges of the data (not metadata), like "data collected between 1961-2003" (could be achieved using "dates")
+  # - geolocations are not mapped one to one
   ####
   _default_:
-    dynamic: strict # Prohibit unknown fields
+    dynamic: strict # Unknown fields will throw an exception
   metadata:
     properties:
       ##############################
@@ -88,7 +86,7 @@ mappings:
                 raw:
                   type: keyword
           nameIdentifiers: # e.g. orcid id number
-            type: nested # ntd: check
+            type: nested
             properties:
               nameIdentifier:
                 type: text
@@ -375,10 +373,10 @@ mappings:
             type: keyword # free text, e.g. URL
 
       sizes: # Unstructured size information about the resource
-        type: object # e.g. 3 GB
+        type: object
         properties:
           size:
-            type: keyword
+            type: keyword # e.g. 3 kB
             index: false
 
       formats: # Technical format of the resource. Use file extension or MIME type where possible.
@@ -419,7 +417,7 @@ mappings:
             #  GRID
             #  Crossref Funder ID
             #  Other
-          awardNumber: # to object mapping? award.number would break with DataCite, but looks a bit nicer
+          awardNumber:
             type: keyword
           awardURI: # optional link to award
             type: keyword
