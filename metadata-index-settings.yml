@@ -272,7 +272,8 @@ mappings:
             #  Valid
           date: # required
             type: date_range
-            format: "yyyy-MM-dd HH:mm:ss" # YYYY, YYYY-MM-DD, YYYY-MM-DDThh:mm:ssTZD or any other format or level of granularity described in W3CDTF. Use RKMS-ISO8601 standard for depicting date ranges.
+            format: "YYYY||YYYY-MM||YYYY-MM-DD||YYYY-MM-DD'T'hh:mm||YYYY-MM-DD'T'hh:mm:ss||YYYY-MM-DD'T'hh:mm:ss.s" # YYYY, YYYY-MM-DD, YYYY-MM-DDThh:mm:ssTZD or any other format or level of granularity described in W3CDTF. Use RKMS-ISO8601 standard for depicting date ranges.
+            # See https://www.elastic.co/guide/en/elasticsearch/reference/current/range.html on how to handle date ranges
 
       geoLocation: # Spatial region or named place where the data was gathered or about which the data is focused. NOTE: every property has to manually mapped to the DataCite schema as they need to be provided in GeoJSON schema (geojson.org)
         type: nested
