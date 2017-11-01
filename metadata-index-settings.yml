@@ -66,11 +66,11 @@ mappings:
           identifier:
             type: keyword
           identifierType:
-            type: keyword # fixed to DOI by now
+            type: keyword # fixed to DOI for now
       creators:
         type: nested
         properties:
-          creatorName: # required! format: FamilyName, GivenName (e.g. Neumann, Mathis) "creatorName" in DataCite schema
+          creatorName: # required! format: FamilyName, GivenName (e.g. Neumann, Mathis)
             type: text
             fields:
               raw:
@@ -126,7 +126,7 @@ mappings:
           description: # required! The actual text, will be stripped of HTML. Please
             type: text
             analyzer: description_analyzer # cleaned of HTML tags, max 2000 words/terms
-          descriptionType: # required! careful this is a property, "descriptionType" in DataCite schema
+          descriptionType: # required!
             type: keyword
             index: false
             # Controlled List Values:
@@ -296,7 +296,7 @@ mappings:
           relatedIdentifier: # required!
             type: keyword
             index: false
-          relatedIdentifierType: # required! careful this is a property, relatedIdentifierType in DataCite schema
+          relatedIdentifierType: # required!
             type: keyword
             index: false
             # Controlled List Values:
@@ -396,7 +396,7 @@ mappings:
           rights: # e.g. CC0 1.0 Universal
             type: keyword
             index: false
-          rightsURI: # rightsURI in DataCite schema
+          rightsURI: 
             type: keyword # e.g. http://creativecommons.org/publicdomain/zero/1.0/
             index: false
 
