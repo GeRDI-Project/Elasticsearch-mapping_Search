@@ -430,7 +430,7 @@ mappings:
                 type: keyword # e.g. http://creativecommons.org/publicdomain/zero/1.0/
                 index: false
 
-      fundingReference: # Information about financial support (funding) for the resource being registered.
+      fundingReferences: # Information about financial support (funding) for the resource being registered.
         type: object # array of objects
         enabled: false # neither parsed or indexed, just stored
         properties:
