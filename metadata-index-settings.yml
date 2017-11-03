@@ -63,83 +63,92 @@ mappings:
       identifier:
         type: nested
         properties:
-          identifier:
+          value:
             type: keyword
           identifierType:
             type: keyword # fixed to DOI for now
       creators:
-        type: nested
+        type: object
         properties:
-          creatorName: # required! format: FamilyName, GivenName (e.g. Neumann, Mathis)
-            type: text
-            fields:
-              raw:
-                type: keyword
-          givenName: # first name
-            type: text
-            fields:
-              raw:
-                type: keyword
-          familyName: # last name
-              type: text
-              fields:
-                raw:
-                  type: keyword
-          nameIdentifiers: # e.g. orcid id number
+          creator:
             type: nested
             properties:
-              nameIdentifier:
+              creatorName: # required! format: FamilyName, GivenName (e.g. Neumann, Mathis)
                 type: text
-                index: false
-              nameIdentifierScheme: # name of the identifier scheme, e.g. ORCID
-                type: keyword
-                index: false
-              schemeURI:
-                type: keyword
-                index: false
-          affiliation: # organizaton the person is in
-            type: text
-            fields:
-              raw:
-                type: keyword
+                fields:
+                  raw:
+                    type: keyword
+              givenName: # first name
+                type: text
+                fields:
+                  raw:
+                    type: keyword
+              familyName: # last name
+                  type: text
+                  fields:
+                    raw:
+                      type: keyword
+              nameIdentifiers: # e.g. orcid id number
+                type: nested
+                properties:
+                  nameIdentifier:
+                    type: text
+                    index: false
+                  nameIdentifierScheme: # name of the identifier scheme, e.g. ORCID
+                    type: keyword
+                    index: false
+                  schemeURI:
+                    type: keyword
+                    index: false
+              affiliation: # organizaton the person is in
+                type: text
+                fields:
+                  raw:
+                    type: keyword
       titles:
-        type: nested
+        type: object
         properties:
-          title:      # required
-            type: text
-          titleType: # optional
-            type: keyword
-            index: false
-            # Controlled List Values:
-            #  AlternativeTitle
-            #  Subtitle
-            #  TranslatedTitle
-            #  Other
-          lang:
-            type: keyword
-            normalizer: lowercase
-            index: false
+          title:
+            type: nested
+            properties:
+              value:      # required
+                type: text
+              titleType: # optional
+                type: keyword
+                index: false
+                # Controlled List Values:
+                #  AlternativeTitle
+                #  Subtitle
+                #  TranslatedTitle
+                #  Other
+              lang:
+                type: keyword
+                normalizer: lowercase
+                index: false
 
       descriptions: # highly recommended, NOTE: The DataCite schema allows <br> here, which are not supported and should be replaced with \n!
-        type: nested
+        type: object
         properties:
-          description: # required! The actual text, will be stripped of HTML. Please
-            type: text
-            analyzer: description_analyzer # cleaned of HTML tags, max 2000 words/terms
-          descriptionType: # required!
-            type: keyword
-            index: false
-            # Controlled List Values:
-            #  Abstract
-            #  Methods
-            #  SeriesInformation
-            #  TableOfContents
-            #  TechnicalInfo
-            #  Other
-          lang:
-            type: keyword
-            normalizer: lowercase
-            index: false
+          description:
+            type: nested
+            properties:
+              value: # required! The actual text, will be stripped of HTML. Please
+                type: text
+                analyzer: description_analyzer # cleaned of HTML tags, max 2000 words/terms
+              descriptionType: # required!
+                type: keyword
+                index: false
+                # Controlled List Values:
+                #  Abstract
+                #  Methods
+                #  SeriesInformation
+                #  TableOfContents
+                #  TechnicalInfo
+                #  Other
+              lang:
+                type: keyword
+                normalizer: lowercase
+                index: false
 
       publisher: # organization or person that published the data
         type: text
@@ -152,7 +161,7 @@ mappings:
       resourceType: # what kind of information is this
         type: object # array of objects
         properties:
-          resourceType: # free text, e.g. "Census Data"
+          value: # free text, e.g. "Census Data"
             type: keyword
             index: false # not indexed
           resourceTypeGeneral: # general category, e.g. "Dataset" for census data, see DataCite Schema PDF for more info on each type
@@ -178,81 +187,91 @@ mappings:
       ### Begin optional fields! ###
       #################################
       subjects: # Subject, keywords (tags), classification codes, or key phrases describing the resource.
-        type: nested
+        type: object
         properties:
-          subject: # required - are always only findable by exact match! Tags should therefore always be concise and probably a single term!
-            type: keyword
-          # RDF Data
-          schemeURI: # the URI of the subject identifier scheme.
-            type: keyword
-            index: false
-          subjectScheme: # The name of the subject scheme or classification code or authority if one is used.
-            type: keyword
-            index: false
-          valueURI: # The URI of the subject term
-            type: keyword
-            index: false
-          lang:
-            type: keyword
-            normalizer: lowercase
-            index: false
+          subject:
+            type: nested
+            properties:
+              value: # required - are always only findable by exact match! Tags should therefore always be concise and probably a single term!
+                type: keyword
+              # RDF Data
+              schemeURI: # the URI of the subject identifier scheme.
+                type: keyword
+                index: false
+              subjectScheme: # The name of the subject scheme or classification code or authority if one is used.
+                type: keyword
+                index: false
+              valueURI: # The URI of the subject term
+                type: keyword
+                index: false
+              lang:
+                type: keyword
+                normalizer: lowercase
+                index: false
 
       contributors: # the institution or person responsible for collecting, managing, distributing, or otherwise contributing to the development of the resource.
-        type: nested
+        type: object
         properties:
-          contributorType: # required! contributorType in DataCite
-            type: keyword
-            index: false
-            # allowed values
-            #  ContactPerson
-            #  DataCollector
-            #  DataCurator
-            #  DataManager
-            #  Distributor
-            #  Editor
-            #  HostingInstitution
-            #  Other
-            #  Producer
-            #  ProjectLeader
-            #  ProjectManager
-            #  ProjectMember
-            #  RegistrationAgency
-            #  RegistrationAuthority
-            #  RelatedPerson
-            #  ResearchGroup
-            #  RightsHolder
-            #  Researcher
-            #  Sponsor
-            #  Supervisor
-            #  WorkPackageLeader
-          contributorName: # required! format: FamiliyName, GivenName (e.g. Neumann, Mathis) - contributorName in DataCite
-            type: text
-            fields:
-              raw:
+          contributor:
+            type: nested
+            properties:
+              contributorType: # required! contributorType in DataCite
                 type: keyword
-          givenName: # first name
-            type: text
-            fields:
-              raw:
-                type: keyword
-          familyName: # last name
-              type: text
-              fields:
-                raw:
+                index: false
+                # allowed values
+                #  ContactPerson
+                #  DataCollector
+                #  DataCurator
+                #  DataManager
+                #  Distributor
+                #  Editor
+                #  HostingInstitution
+                #  Other
+                #  Producer
+                #  ProjectLeader
+                #  ProjectManager
+                #  ProjectMember
+                #  RegistrationAgency
+                #  RegistrationAuthority
+                #  RelatedPerson
+                #  ResearchGroup
+                #  RightsHolder
+                #  Researcher
+                #  Sponsor
+                #  Supervisor
+                #  WorkPackageLeader
+              contributorName: # required! format: FamiliyName, GivenName (e.g. Neumann, Mathis) - contributorName in DataCite
+                type: text
+                fields:
+                  raw:
+                    type: keyword
+              givenName: # first name
+                type: text
+                fields:
+                  raw:
+                    type: keyword
+              familyName: # last name
                   type: text
-          nameIdentifier: # e.g. orcid id number
-            type: keyword
-          nameIdentifierScheme: # name of the identifier scheme, e.g. ORCID
-            type: keyword # TODO: normalizer?
-            index: false
-          nameIdentifierSchemeURI: # slightly differs from DataCite which is an XML attribute, e.g. http://orcid.org/
-            type: keyword
-            index: false
-          affiliation: # organizaton the person is in
-            type: text
-            fields:
-              raw:
-                type: keyword
+                  fields:
+                    raw:
+                      type: text
+              nameIdentifiers: # e.g. orcid id number
+                type: nested
+                properties:
+                  nameIdentifier:
+                    type: text
+                    index: false
+                  nameIdentifierScheme: # name of the identifier scheme, e.g. ORCID
+                    type: keyword # TODO: normalizer?
+                    index: false
+                  schemeURI: # slightly differs from DataCite which is an XML attribute, e.g. http://orcid.org/
+                    type: keyword
+                    index: false
+              affiliation: # organizaton the person is in
+                type: text
+                fields:
+                  raw:
+                    type: keyword
 
       dates: # Different dates relevant to the work.
         type: nested
@@ -274,88 +293,93 @@ mappings:
             type: date_range
             format: "YYYY||YYYY-MM||YYYY-MM-DD||YYYY-MM-DD'T'hh:mm||YYYY-MM-DD'T'hh:mm:ss||YYYY-MM-DD'T'hh:mm:ss.s" # YYYY, YYYY-MM-DD, YYYY-MM-DDThh:mm:ssTZD or any other format or level of granularity described in W3CDTF. Use RKMS-ISO8601 standard for depicting date ranges.
             # See https://www.elastic.co/guide/en/elasticsearch/reference/current/range.html on how to handle date ranges
-
-      geoLocation: # Spatial region or named place where the data was gathered or about which the data is focused. NOTE: every property has to manually mapped to the DataCite schema as they need to be provided in GeoJSON schema (geojson.org)
-        type: nested
+      geoLocations:
+        type: object # array of objects
         properties:
-          geoLocationPlace: # free text name of a location - geoLocationPlace in DataCite schema
-            type: text
-            fields:
-              raw:
-                type: keyword
-          geoLocationPoint: # geoLocationPoint in DataCite schema
-            type: geo_point # NOTE: manually map! Represented as tuple [<lon>,<lat>] - DataCite schema: <pointLongitude> and <pointLatitude tags in XML
-          geoLocationBox: # geoLocationBox in DataCite schema - rectangle with the upper left and lower right point NOTE: verify order of lat/lon and is string in DataCite schema!
-            type: geo_shape # NOTE: manually map to  { "type": "envelope", "coordinates": [ [lon,lat], [lon, lat] ] }
-          geoLocationPolygon: # A drawn polygon area, defined by a set of points and lines connecting the points in a closed chain (first and last point must match!).
-            type: geo_shape # NOTE: manually map to { "type": "polygon", "coordinates": [ [lon, lat], [lon,lat], ... ]}, see https://www.elastic.co/guide/en/elasticsearch/reference/current/geo-shape.html and http://geojson.org/geojson-spec.html#id4
+          geoLocation: # Spatial region or named place where the data was gathered or about which the data is focused. NOTE: every property has to manually mapped to the DataCite schema as they need to be provided in GeoJSON schema (geojson.org)
+            type: nested
+            properties:
+              geoLocationPlace: # free text name of a location - geoLocationPlace in DataCite schema
+                type: text
+                fields:
+                  raw:
+                    type: keyword
+              geoLocationPoint: # geoLocationPoint in DataCite schema
+                type: geo_point # NOTE: manually map! Represented as tuple [<lon>,<lat>] - DataCite schema: <pointLongitude> and <pointLatitude tags in XML
+              geoLocationBox: # geoLocationBox in DataCite schema - rectangle with the upper left and lower right point NOTE: verify order of lat/lon and is string in DataCite schema!
+                type: geo_shape # NOTE: manually map to  { "type": "envelope", "coordinates": [ [lon,lat], [lon, lat] ] }
+              geoLocationPolygon: # A drawn polygon area, defined by a set of points and lines connecting the points in a closed chain (first and last point must match!).
+                type: geo_shape # NOTE: manually map to { "type": "polygon", "coordinates": [ [lon, lat], [lon,lat], ... ]}, see https://www.elastic.co/guide/en/elasticsearch/reference/current/geo-shape.html and http://geojson.org/geojson-spec.html#id4
 
       relatedIdentifiers: # recommended, Identifiers of related resources. Use this property to indicate subsets of properties, as appropriate.
-        type: nested
+        type: object
         properties: # TODO: human readable label? TODO: relationType
-          relatedIdentifier: # required!
-            type: keyword
-            index: false
-          relatedIdentifierType: # required!
-            type: keyword
-            index: false
-            # Controlled List Values:
-            #  ARK
-            #  arXiv
-            #  bibcode
-            #  DOI
-            #  EAN13
-            #  EISSN
-            #  Handle
-            #  IGSN
-            #  ISBN
-            #  ISSN
-            #  ISTC
-            #  LISSN
-            #  LSID
-            #  PMID
-            #  PURL
-            #  UPC
-            #  URL
-            #  URN
-          relationType: # required! Description of the relationship of the resource being registered (A) and the related resource (B)
-            type: keyword
-            index: false
-            # Controlled List Values:
-            #  IsCitedBy
-            #  Cites
-            #  IsSupplementTo
-            #  IsSupplementedBy
-            #  IsContinuedBy
-            #  Continues
-            #  IsNewVersionOf
-            #  IsPreviousVersionOf
-            #  IsPartOf
-            #  HasPart
-            #  IsReferencedBy
-            #  References
-            #  IsDocumentedBy
-            #  Documents
-            #  IsCompiledBy
-            #  Compiles
-            #  IsVariantFormOf
-            #  IsOriginalFormOf
-            #  IsIdenticalTo
-            #  HasMetadata
-            #  IsMetadataFor
-            #  Reviews
-            #  IsReviewedBy
-            #  IsDerivedFrom
-            #  IsSourceOf
-          relatedMetadataScheme: # optional, e.g. citeproc+json
-            type: keyword
-            index: false
-          schemeURI: # optional, e.g. https://github.com/citation-style-language/schema/raw/master/csl-data.json
-            type: keyword
-            index: false
-          schemeType: # optional,
-            type: keyword
-            index: false
+          relatedIdentifier:
+            type: nested
+            properties:
+              value: # required!
+                type: keyword
+                index: false
+              relatedIdentifierType: # required!
+                type: keyword
+                index: false
+                # Controlled List Values:
+                #  ARK
+                #  arXiv
+                #  bibcode
+                #  DOI
+                #  EAN13
+                #  EISSN
+                #  Handle
+                #  IGSN
+                #  ISBN
+                #  ISSN
+                #  ISTC
+                #  LISSN
+                #  LSID
+                #  PMID
+                #  PURL
+                #  UPC
+                #  URL
+                #  URN
+              relationType: # required! Description of the relationship of the resource being registered (A) and the related resource (B)
+                type: keyword
+                index: false
+                # Controlled List Values:
+                #  IsCitedBy
+                #  Cites
+                #  IsSupplementTo
+                #  IsSupplementedBy
+                #  IsContinuedBy
+                #  Continues
+                #  IsNewVersionOf
+                #  IsPreviousVersionOf
+                #  IsPartOf
+                #  HasPart
+                #  IsReferencedBy
+                #  References
+                #  IsDocumentedBy
+                #  Documents
+                #  IsCompiledBy
+                #  Compiles
+                #  IsVariantFormOf
+                #  IsOriginalFormOf
+                #  IsIdenticalTo
+                #  HasMetadata
+                #  IsMetadataFor
+                #  Reviews
+                #  IsReviewedBy
+                #  IsDerivedFrom
+                #  IsSourceOf
+              relatedMetadataScheme: # optional, e.g. citeproc+json
+                type: keyword
+                index: false
+              schemeURI: # optional, e.g. https://github.com/citation-style-language/schema/raw/master/csl-data.json
+                type: keyword
+                index: false
+              schemeType: # optional,
+                type: keyword
+                index: false
 
       ##############################
       ### Begin optional fields! ###
@@ -368,10 +392,13 @@ mappings:
       alternateIdentifiers: # An identifier or identifiers other than the primary Identifier applied to the resource being registered. This may be any alphanumeric string which is unique within its domain of issue. May be used for local identifiers. AlternateIdentifier should be used for another identifier of the same instance (same location, same file).
         type: nested
         properties:
-          alternateIdentifier: # required, alternateIdentifier in DataCite schema
-            type: keyword
-          alternateIdentifierType: # required
-            type: keyword # free text, e.g. URL
+          alternateIdentifier:
+            type: nested
+            properties:
+              value: # required, alternateIdentifier in DataCite schema
+                type: keyword
+              alternateIdentifierType: # required
+                type: keyword # free text, e.g. URL
 
       sizes: # Unstructured size information about the resource
         type: object
@@ -391,76 +418,77 @@ mappings:
         type: keyword # e.g. 3.1
 
       rightsList:
-        type: nested
+        type: object
         properties:
-          rights: # e.g. CC0 1.0 Universal
-            type: keyword
-            index: false
-          rightsURI: 
-            type: keyword # e.g. http://creativecommons.org/publicdomain/zero/1.0/
-            index: false
+          rights:
+            type: nested
+            properties:
+              value: # e.g. CC0 1.0 Universal
+                type: keyword
+                index: false
+              rightsURI:
+                type: keyword # e.g. http://creativecommons.org/publicdomain/zero/1.0/
+                index: false
 
       fundingReference: # Information about financial support (funding) for the resource being registered.
-        type: nested # array of objects
+        type: object # array of objects
         enabled: false # neither parsed or indexed, just stored
         properties:
-          funderName:
-            type: text
-            fields:
-              raw:
+          fundingReference:
+            type: nested
+            properties:
+              funderName:
+                type: text
+                fields:
+                  raw:
+                    type: keyword
+              funderIdentifier:
                 type: keyword
-          funderIdentifier:
-            type: keyword
-          funderIdentifierType:
-            type: keyword
-            # Controlled Value List:
-            #  ISNI
-            #  GRID
-            #  Crossref Funder ID
-            #  Other
-          awardNumber:
-            type: keyword
-          awardURI: # optional link to award
-            type: keyword
-          awardTitle: # human readable version of the award
-            type: text
-            fields:
-              raw:
+              funderIdentifierType:
                 type: keyword
+                # Controlled Value List:
+                #  ISNI
+                #  GRID
+                #  Crossref Funder ID
+                #  Other
+              awardNumber:
+                type: keyword
+              awardURI: # optional link to award
+                type: keyword
+              awardTitle: # human readable version of the award
+                type: text
+                fields:
+                  raw:
+                    type: keyword
 
       ###########################
       ### Begin GERDI fields! ###
       ###########################
-      webLinks: # suggested, links used to refer users to when they want to see the original source website
+      webLink: # suggested, links used to refer users to when they want to see the original source website
         type: nested
         enabled: false # neither parsed or indexed, just stored
         properties:
-          linkName:
+          webLinkName:
             type: keyword
-          linkURI:
+          webLinkURI:
             type: keyword
 
-      repository:
-        type: nested
-        enabled: false
-        properties:
-          repositoryIdentifier:
-            type: keyword
-          repositoryURI:
-            type: keyword
+      repositoryIdentifier:
+        type: keyword
+        index: false
 
       researchData:
         type: nested
         enabled: false
         properties:
-          fileIdentifier:
+          researchDataIdentifier:
             type: keyword
-          fileURL:
+          researchDataURL:
             type: keyword
-          fileLabel:
+          researchDataLabel:
             type: keyword
-          fileType:
+          researchDataType:
             type: keyword
 
-      researchDomain:
+      researchDiscipline:
         type: keyword
