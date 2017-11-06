@@ -464,31 +464,37 @@ mappings:
       ###########################
       ### Begin GERDI fields! ###
       ###########################
-      webLink: # suggested, links used to refer users to when they want to see the original source website
-        type: nested
-        enabled: false # neither parsed or indexed, just stored
+      webLinks:
+        type: object
         properties:
-          webLinkName:
-            type: keyword
-          webLinkURI:
-            type: keyword
+          webLink: # suggested, links used to refer users to when they want to see the original source website
+            type: nested
+            enabled: false # neither parsed or indexed, just stored
+            properties:
+              webLinkName:
+                type: keyword
+              webLinkURI:
+                type: keyword
 
       repositoryIdentifier:
         type: keyword
         index: false
 
-      researchData:
-        type: nested
-        enabled: false
+      researchDataList:
+        type: object
         properties:
-          researchDataIdentifier:
-            type: keyword
-          researchDataURL:
-            type: keyword
-          researchDataLabel:
-            type: keyword
-          researchDataType:
-            type: keyword
+          researchData:
+            type: nested
+            enabled: false
+            properties:
+              researchDataIdentifier:
+                type: keyword
+              researchDataURL:
+                type: keyword
+              researchDataLabel:
+                type: keyword
+              researchDataType:
+                type: keyword
 
       researchDiscipline:
         type: keyword
