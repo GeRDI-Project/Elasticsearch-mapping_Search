@@ -3,8 +3,6 @@ settings:
   index:
     number_of_shards: 1
     number_of_replicas: 1
-    mapper.dynamic: false # unknown properties will not get indexed and parsed automatically
-  mapping.single_type: true # Just one type in preparation for ES 6.0+
   analysis:
     normalizer: # Normalizer are only experimental; used for keywords
       lowercase:
@@ -53,8 +51,6 @@ mappings:
   # - ES allows all properties to be arrays, the JSON that the service sends to the index should only contain arrays if the properties name is plural.
   # - geolocations are not mapped one to one
   ####
-  _default_:
-    dynamic: strict # Unknown fields will throw an exception
   metadata:
     properties:
       ##############################
