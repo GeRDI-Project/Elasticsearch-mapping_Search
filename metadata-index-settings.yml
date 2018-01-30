@@ -57,17 +57,17 @@ mappings:
       ### Begin required fields ###
       ##############################
       identifier:
-        type: nested
+        type: object
         properties:
           value:
             type: keyword
           identifierType:
             type: keyword # fixed to DOI for now
       creators:
-        type: nested
+        type: object
         properties:
           creatorName:
-            type: nested
+            type: object
             properties:
               value:
                 type: text
@@ -88,7 +88,7 @@ mappings:
                 raw:
                   type: keyword
           nameIdentifiers: # e.g. orcid id number
-            type: nested
+            type: object
             properties:
               value:
                 type: text
@@ -105,7 +105,7 @@ mappings:
               raw:
                 type: keyword
       titles:
-        type: nested
+        type: object
         properties:
           value:      # required
             type: text
@@ -123,7 +123,7 @@ mappings:
             index: false
 
       descriptions: # highly recommended, NOTE: The DataCite schema allows <br> here, which are not supported and should be replaced with \n!
-        type: nested
+        type: object
         properties:
           value: # required! The actual text, will be stripped of HTML. Please
             type: text
@@ -181,7 +181,7 @@ mappings:
       ### Begin optional fields! ###
       #################################
       subjects: # Subject, keywords (tags), classification codes, or key phrases describing the resource.
-        type: nested
+        type: object
         properties:
           value: # required - are always only findable by exact match! Tags should therefore always be concise and probably a single term!
             type: keyword
@@ -201,7 +201,7 @@ mappings:
             index: false
 
       contributors: # the institution or person responsible for collecting, managing, distributing, or otherwise contributing to the development of the resource.
-        type: nested
+        type: object
         properties:
           contributorType: # required! contributorType in DataCite
             type: keyword
@@ -229,7 +229,7 @@ mappings:
             #  Supervisor
             #  WorkPackageLeader
           contributorName:
-            type: nested
+            type: object
             properties:
               value:
                 type: text
@@ -250,7 +250,7 @@ mappings:
                 raw:
                   type: text
           nameIdentifiers: # e.g. orcid id number
-            type: nested
+            type: object
             properties:
               value:
                 type: text
@@ -268,7 +268,7 @@ mappings:
                 type: keyword
 
       dates: # Different dates relevant to the work.
-        type: nested
+        type: object
         properties:
           dateType: # required, careful, that is a property name
             type: keyword # TODO: flatten? Each possible type as its own property, e.g. dates.accepted
@@ -292,7 +292,7 @@ mappings:
             index: false
 
       geoLocations:
-        type: nested
+        type: object
         properties:
           geoLocationPlace: # free text name of a location - geoLocationPlace in DataCite schema
             type: text
@@ -307,7 +307,7 @@ mappings:
             type: geo_shape # NOTE: manually map to { "type": "polygon", "coordinates": [ [lon, lat], [lon,lat], ... ]}, see https://www.elastic.co/guide/en/elasticsearch/reference/current/geo-shape.html and http://geojson.org/geojson-spec.html#id4
 
       relatedIdentifiers: # recommended, Identifiers of related resources. Use this property to indicate subsets of properties, as appropriate.
-        type: nested
+        type: object
         properties:
           value: # required!
             type: keyword
@@ -401,7 +401,7 @@ mappings:
         index: false
 
       alternateIdentifiers: # An identifier or identifiers other than the primary Identifier applied to the resource being registered. This may be any alphanumeric string which is unique within its domain of issue. May be used for local identifiers. AlternateIdentifier should be used for another identifier of the same instance (same location, same file).
-        type: nested
+        type: object
         properties:
           value: # required, alternateIdentifier in DataCite schema
             type: keyword
@@ -420,7 +420,7 @@ mappings:
         type: keyword # e.g. 3.1
 
       rightsList:
-        type: nested
+        type: object
         properties:
           value: # e.g. CC0 1.0 Universal
             type: keyword
@@ -433,7 +433,7 @@ mappings:
             index: false
 
       fundingReferences: # Information about financial support (funding) for the resource being registered.
-        type: nested
+        type: object
         properties:
           funderName:
             type: text
@@ -441,7 +441,7 @@ mappings:
               raw:
                 type: keyword
           funderIdentifier:
-            type: nested
+            type: object
             properties:
               value:
                 type: keyword
@@ -453,7 +453,7 @@ mappings:
                 #  Crossref Funder ID
                 #  Other
           awardNumber:
-            type: nested
+            type: object
             properties:
               value:
                 type: keyword
@@ -470,7 +470,7 @@ mappings:
       ### Begin GERDI fields! ###
       ###########################
       webLinks:
-        type: nested
+        type: object
         enabled: false # neither parsed or indexed, just stored
         properties:
           webLinkName:
@@ -491,7 +491,7 @@ mappings:
         index: false
 
       researchDataList:
-        type: nested
+        type: object
         enabled: false
         properties:
           researchDataIdentifier:
