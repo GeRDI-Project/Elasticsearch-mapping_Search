@@ -300,7 +300,7 @@ mappings:
               raw:
                 type: keyword
           geoLocationPoint: # geoLocationPoint in DataCite schema
-            type: geo_point # NOTE: manually map! Represented as tuple [<lon>,<lat>] - DataCite schema: <pointLongitude> and <pointLatitude tags in XML
+            type: geo_shape # NOTE: manually map! Represented as tuple [<lon>,<lat>] - DataCite schema: <pointLongitude> and <pointLatitude tags in XML
           geoLocationBox: # geoLocationBox in DataCite schema - rectangle with the upper left and lower right point NOTE: verify order of lat/lon and is string in DataCite schema!
             type: geo_shape # NOTE: manually map to  { "type": "envelope", "coordinates": [ [lon,lat], [lon, lat] ] }
           geoLocationPolygon: # A drawn polygon area, defined by a set of points and lines connecting the points in a closed chain (first and last point must match!).
@@ -504,4 +504,13 @@ mappings:
             type: keyword
 
       researchDisciplines:
-        type: keyword
+        type: object
+        properties:
+          discipline:
+            type: text
+          area:
+            type: text
+          category:
+            type: text
+          rnbr:
+            type: text
