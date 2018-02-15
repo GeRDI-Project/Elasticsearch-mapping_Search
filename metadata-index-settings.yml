@@ -513,4 +513,4 @@ mappings:
           category:
             type: text
           rnbr:
-            type: text
+            type: keyword
