@@ -15,4 +15,4 @@ fi
 
 echo "\nCreating new index using metadata-index-settings.yml"
 
-js-yaml metadata-index-settings.yml | curl -XPUT $HOST/$INDEX?format=yaml -d @- --header "Content-Type: application/x-yaml"
+js-yaml metadata-index-settings.yml | curl -XPUT $HOST/$INDEX?format=yaml -d @- --header "Content-Type: application/json"
