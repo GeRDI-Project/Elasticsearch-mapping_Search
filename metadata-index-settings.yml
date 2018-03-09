@@ -20,6 +20,12 @@ settings:
           - english_snowball
           - remove_common_english_terms
           - description_limit
+      rnbr_analyzer:
+        tokenizer: rnbr_tokenizer
+    tokenizer:
+        rnbr_tokenizer:
+          type: path_hierarchy
+          delimiter: "-"
     filter:
       remove_common_english_terms: # Remove words like "a","the", ... reduces index size. Increases hit rate as queries get more accurate (stopwords introduce noise)
         type: stop
@@ -513,4 +519,5 @@ mappings:
           category:
             type: text
           rnbr:
-            type: keyword
+            type: text
+            analyzer: rnbr_analyzer
