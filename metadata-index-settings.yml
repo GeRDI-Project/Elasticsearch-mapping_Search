@@ -404,7 +404,6 @@ mappings:
       language: # Primary language of the resource. Allowed values are taken from  IETF BCP 47, ISO 639-1 language codes. (e.g. de, en-US)
         type: keyword
         normalizer: lowercase
-        index: false
 
       alternateIdentifiers: # An identifier or identifiers other than the primary Identifier applied to the resource being registered. This may be any alphanumeric string which is unique within its domain of issue. May be used for local identifiers. AlternateIdentifier should be used for another identifier of the same instance (same location, same file).
         type: object
