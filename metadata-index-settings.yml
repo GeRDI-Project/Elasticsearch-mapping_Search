@@ -10,6 +10,8 @@ settings:
         filter:
           - lowercase
     analyzer:
+      default:
+        type: standard
       description_analyzer:
         type: english
         tokenizer: description_tokenizer
@@ -17,6 +19,7 @@ settings:
           - html_strip
         filter:
           - standard
+          - lowercase
           - english_snowball
           - remove_common_english_terms
           - description_limit
@@ -191,6 +194,7 @@ mappings:
         properties:
           value: # required - are always only findable by exact match! Tags should therefore always be concise and probably a single term!
             type: keyword
+            normalizer: lowercase
           # RDF Data
           schemeURI: # the URI of the subject identifier scheme.
             type: keyword
