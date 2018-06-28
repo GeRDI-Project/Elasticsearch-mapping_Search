@@ -10,6 +10,8 @@ settings:
         filter:
           - lowercase
     analyzer:
+      default:
+        type: standard
       description_analyzer:
         type: english
         tokenizer: description_tokenizer
@@ -17,6 +19,7 @@ settings:
           - html_strip
         filter:
           - standard
+          - lowercase
           - english_snowball
           - remove_common_english_terms
           - description_limit
@@ -125,7 +128,6 @@ mappings:
             #  Other
           lang:
             type: keyword
-            normalizer: lowercase
             index: false
 
       descriptions: # highly recommended, NOTE: The DataCite schema allows <br> here, which are not supported and should be replaced with \n!
@@ -190,7 +192,10 @@ mappings:
         type: object
         properties:
           value: # required - are always only findable by exact match! Tags should therefore always be concise and probably a single term!
-            type: keyword
+            type: text
+            fields:
+              raw:
+                type: keyword
           # RDF Data
           schemeURI: # the URI of the subject identifier scheme.
             type: keyword
@@ -203,7 +208,6 @@ mappings:
             index: false
           lang:
             type: keyword
-            normalizer: lowercase
             index: false
 
       contributors: # the institution or person responsible for collecting, managing, distributing, or otherwise contributing to the development of the resource.
@@ -254,7 +258,7 @@ mappings:
               type: text
               fields:
                 raw:
-                  type: text
+                  type: keyword
           nameIdentifiers: # e.g. orcid id number
             type: object
             properties:
@@ -410,6 +414,7 @@ mappings:
         properties:
           value: # required, alternateIdentifier in DataCite schema
             type: keyword
+            index: false
           alternateIdentifierType: # required
             type: text # free text, e.g. URL
 
@@ -423,6 +428,7 @@ mappings:
 
       version: # Version number of the resource. If the primary resource has changed the version number increases.
         type: keyword # e.g. 3.1
+        normalizer: lowercase
 
       rightsList:
         type: object
@@ -450,8 +456,10 @@ mappings:
             properties:
               value:
                 type: keyword
+                normalizer: lowercase
               funderIdentifierType:
                 type: keyword
+                normalizer: lowercase
                 # Controlled Value List:
                 #  ISNI
                 #  GRID
@@ -462,6 +470,7 @@ mappings:
             properties:
               value:
                 type: keyword
+                normalizer: lowercase
               awardURI:
                 type: keyword
                 index: false
