@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Copyright © 2018 Nelson Tavares de Sousa (http://www.gerdi-project.de/)
 #
@@ -16,46 +16,22 @@
 
 # treat unset variables as an error when substituting
 set -u
+# If anything in the pipe fails, return the last non-zero exit code as overall exit code
+set -o pipefail
+
+source ./functions.sh
 
 HOST=${HOST:-http://localhost:9200}
 ALIAS=${ALIAS:-gerdi}
 
 echo "Checking if an old index exists in order to replace it"
 
-CreateNewIndex() {
-  TARGETINDEX=$ALIAS-$(date +"%d%m%y-%H%M")
-  js-yaml metadata-index-settings.yml | curl -s -XPUT "$HOST/$TARGETINDEX?format=yaml" -d @- --header "Content-Type: application/json"
-  curl -s -XPOST "$HOST/_aliases?format=yaml" -d '{
-    "actions": [
-    { "add": { "index": "'$TARGETINDEX'", "alias": "'$ALIAS'" } }
-    ]
-  }' --header "Content-Type: application/json"
-  echo "Index created"
-}
-
-UpdateIndex() {
-  SOURCEINDEX=$(curl -s "$HOST/$ALIAS" | sed -nE 's/.*"provided_name":"(.*)"\,"creation_date.*/\1/p') # curl returns a document describing the concrete index, or a missing index exception
-  TARGETINDEX=$ALIAS-$(date +"%d%m%y-%H%M")
-  js-yaml metadata-index-settings.yml | curl -s -XPUT "$HOST/$TARGETINDEX?format=yaml" -d @- --header "Content-Type: application/json"
-  curl -s -XPOST "$HOST/_reindex?format=yaml" -d '{
-    "source": {
-      "index": "'$SOURCEINDEX'"
-    },
-    "dest": {
-      "index": "'$TARGETINDEX'"
-    }
-  }' --header "Content-Type: application/json"
-  curl -s -XPOST "$HOST/_aliases?format=yaml" -d '{
-    "actions": [
-    { "add": { "index": "'$TARGETINDEX'", "alias": "'$ALIAS'" } },
-    { "remove_index": { "index": "'$SOURCEINDEX'" } }
-    ]
-  }' --header "Content-Type: application/json"
-  echo "Index updated"
-}
-
 # Update index on start
 SOURCEINDEX=$(curl -s "$HOST/$ALIAS" | sed -nE 's/.*"provided_name":"(.*)"\,"creation_date.*/\1/p') # curl returns a document describing the concrete index, or a missing index exception
+if [ "$?" != 0 ]; then
+  echo "ERROR: Cannot connect to "$HOST"/"$ALIAS". Exiting now"
+  exit 1
+fi
 if [ "$SOURCEINDEX" != "" ]; then
   echo "Updating to a new schema"
   UpdateIndex
@@ -70,6 +46,10 @@ do
   sleep 300
   echo "Checking for lost index"
   NOTFOUND=$(curl -s "$HOST/$ALIAS" | grep index_not_found)
+  if [ "$?" != 0 ]; then
+    echo "ERROR: Cannot connect to "$HOST"/"$ALIAS"."
+    break # Don't exit, because this may be a temporal outage
+  fi
   if [ "$NOTFOUND" != "" ]; then
     echo "Index seems to be lost. Creating index again"
     CreateNewIndex
