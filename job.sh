@@ -50,11 +50,10 @@ do
     echo "ERROR: Cannot connect to "$HOST"/"$ALIAS"." >&2
     continue # Don't exit, because this may be a temporal outage
   fi
-  NOTFOUND=$(cat "$PAYLOAD" | grep index_not_found)
+  NOTFOUND=$(echo "$PAYLOAD" | grep index_not_found)
   if [ "$NOTFOUND" != "" ]; then
     echo "Index seems to be lost. Creating index again"
     CreateNewIndex
-    echo "worked"
   else
     echo "Index exists. Will recheck in 5 minutes"
   fi
