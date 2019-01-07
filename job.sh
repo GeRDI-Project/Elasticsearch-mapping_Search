@@ -45,18 +45,16 @@ while true
 do
   sleep 300
   echo "Checking for lost index"
-  NOTFOUND=$(curl -s "$HOST/$ALIAS" | grep index_not_found)
-  RETVAL=$?
-  if [ "$RETVAL" != 0 ]; then
+  PAYLOAD=$(curl -s "$HOST/$ALIAS")
+  if [ "$?" != 0 ]; then
+    echo "ERROR: Cannot connect to "$HOST"/"$ALIAS"." >&2
+    continue # Don't exit, because this may be a temporal outage
+  fi
+  NOTFOUND=$(cat "$PAYLOAD" | grep index_not_found)
+  if [ "$NOTFOUND" != "" ]; then
     echo "Index seems to be lost. Creating index again"
     CreateNewIndex
-    break # Onto the next loop iteration!
-  fi
-  if [ "$RETVAL" != 1 ]; then # 0 means the index could not be found and
-                              # 1 means the index exists (grep exits with 1 if it cannot find anything and
-                              # curl exits with 1 if the scheme is not supported, which is never the case here)
-    echo "ERROR: Cannot connect to "$HOST"/"$ALIAS"."
-    break # Don't exit, because this may be a temporal outage
+    echo "worked"
   else
     echo "Index exists. Will recheck in 5 minutes"
   fi
