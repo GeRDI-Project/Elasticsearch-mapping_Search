@@ -530,26 +530,23 @@ mappings:
             type: text
             analyzer: rnbr_analyzer
 
-      extension:
+      extensions:
         type: object
         enabled: false # neither parsed or indexed, just stored
         properties:
           soep:
             type: object
             properties:
-              datasetVariables:
+              variableName:
+                type: text
+              source:
+                type: text
+              concepts:
                 type: object
                 properties:
-                  variableName:
+                  name:
                     type: text
-                  source:
+                  label:
                     type: text
-                  concepts:
-                    type: object
-                    properties:
-                      name:
-                        type: text
-                      label:
-                        type: text
-                      language:
-                        type: text
+                  language:
+                    type: text
