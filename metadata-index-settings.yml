@@ -530,7 +530,7 @@ mappings:
             type: text
             analyzer: rnbr_analyzer
 
-      extensions:
+      extension:
         type: object
         enabled: false # neither parsed or indexed, just stored
         properties:
