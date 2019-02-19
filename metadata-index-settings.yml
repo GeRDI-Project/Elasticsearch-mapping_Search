@@ -529,3 +529,24 @@ mappings:
           rnbr:
             type: text
             analyzer: rnbr_analyzer
+
+      extensions:
+        type: object
+        enabled: false # neither parsed or indexed, just stored
+        properties:
+          soep:
+            type: object
+            properties:
+              variableName:
+                type: text
+              source:
+                type: text
+              concepts:
+                type: object
+                properties:
+                  name:
+                    type: text
+                  label:
+                    type: text
+                  language:
+                    type: text
