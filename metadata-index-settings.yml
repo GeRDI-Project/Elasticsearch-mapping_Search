@@ -86,6 +86,9 @@ mappings:
               nameType:
                 type: keyword
                 index: false
+              lang:
+                type: keyword # e.g. en-US
+                index: false
           givenName: # first name
             type: text
             fields:
@@ -109,10 +112,20 @@ mappings:
                 type: keyword
                 index: false
           affiliation: # organizaton the person is in
-            type: text
-            fields:
-              raw:
+            type: object
+            properties:
+              value:
+                type: text
+                index: false
+              affiliationIdentifier:
                 type: keyword
+                index: false
+              affiliationIdentifierScheme:
+                type: keyword
+                index: false
+              schemeURI:
+                type: keyword
+                index: false
       titles:
         type: object
         properties:
@@ -152,10 +165,16 @@ mappings:
             index: false
 
       publisher: # organization or person that published the data
-        type: text
-        fields:
-          raw:
-            type: keyword
+        type: object
+        properties:
+          value:
+            type: text
+            fields:
+              raw:
+                type: keyword
+          lang:
+            type: keyword # e.g. en-US
+            index: false
       publicationYear:
         type: date # Format: YYYY # ntd: should be checked within the indexing (Only YYYY)
 
@@ -249,6 +268,9 @@ mappings:
               nameType:
                 type: keyword
                 index: false
+              lang:
+                type: keyword # e.g. en-US
+                index: false
           givenName: # first name
             type: text
             fields:
@@ -272,10 +294,20 @@ mappings:
                 type: keyword
                 index: false
           affiliation: # organizaton the person is in
-            type: text
-            fields:
-              raw:
+            type: object
+            properties:
+              value:
+                type: text
+                index: false
+              affiliationIdentifier:
                 type: keyword
+                index: false
+              affiliationIdentifierScheme:
+                type: keyword
+                index: false
+              schemeURI:
+                type: keyword
+                index: false
 
       dates: # Different dates relevant to the work.
         type: object
@@ -293,6 +325,8 @@ mappings:
             #  Submitted
             #  Updated
             #  Valid
+            #  Withdrawn
+            #  Other
           value: # required
             type: date_range
             format: "yyyy||yyyy-MM||yyyy-MM-dd||yyyy-MM-dd'T'HH:mm||yyyy-MM-dd'T'HH:mm:ss||yyyy-MM-dd'T'HH:mm:ss'Z'||yyyy-MM-dd'T'HH:mm:ss.SSS||yyyy-MM-dd'T'HH:mm:ss.SSSZ" # YYYY, YYYY-MM-DD, YYYY-MM-DDThh:mm:ssTZD or any other format or level of granularity described in W3CDTF. Use RKMS-ISO8601 standard for depicting date ranges.
@@ -344,6 +378,7 @@ mappings:
             #  UPC
             #  URL
             #  URN
+            #  w3id
           relationType: # required! Description of the relationship of the resource being registered (A) and the related resource (B)
             type: keyword
             index: false
@@ -373,6 +408,10 @@ mappings:
             #  IsReviewedBy
             #  IsDerivedFrom
             #  IsSourceOf
+            #  IsRequiredBy
+            #  Requires
+            #  IsObsoletedBy
+            #  Obsoletes
           relatedMetadataScheme: # optional, e.g. citeproc+json
             type: keyword
             index: false
@@ -440,7 +479,16 @@ mappings:
             type: keyword # e.g. http://creativecommons.org/publicdomain/zero/1.0/
             index: false
           lang:
-            type: keyword
+            type: keyword # e.g. en-US
+            index: false
+          rightsIdentifier:
+            type: keyword # e.g. CC-BY-3.0
+            index: false
+          rightsIdentifierScheme:
+            type: keyword # e.g. SPDX
+            index: false
+          schemeURI:
+            type: keyword # e.g. https://spdx.org/licenses/
             index: false
 
       fundingReferences: # Information about financial support (funding) for the resource being registered.
@@ -465,6 +513,10 @@ mappings:
                 #  GRID
                 #  Crossref Funder ID
                 #  Other
+                #  ROR
+              schemeURI:
+                type: keyword
+                index: false
           awardNumber:
             type: object
             properties:
