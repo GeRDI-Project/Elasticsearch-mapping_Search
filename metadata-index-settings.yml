@@ -71,7 +71,7 @@ mappings:
           value:
             type: keyword
           identifierType:
-            type: keyword # fixed to DOI for now
+            type: keyword
       creators:
         type: object
         properties:
